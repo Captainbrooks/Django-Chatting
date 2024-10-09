@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #messages { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; height: 300px; overflow-y: scroll; }
+        #message { width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Chat Room</h1>
+    <div id="messages"></div>
+    <input id="message" type="text" placeholder="Type a message...">
+    <button id="send">Send</button>
+
+    <script>
+        const username = "{{ username }}";
+        const otherUsername = "{{ other_username }}";
+        console.log(window.location.host)
+        const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + username + '/' + otherUsername + '/');
+
+
+        chatSocket.onopen=function(event){
+            console.log("WebSocket connection is success")
+        }
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const messagesDiv = document.getElementById('messages');
+            const moremessagesDiv = document.getElementById('more-messages');
+
+            if(data.username && data.message){
+                messagesDiv.innerHTML += `<p><strong>${data.username}:</strong> ${data.message}</p>`;
+            }else{
+                messagesDiv.innerHTML += `Write a message to start converstation`;
+            }
+            
+            
+        };
+
+        document.getElementById('send').onclick = function() {
+            const messageInputDom = document.getElementById('message');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({ 'message': message, 'username': username,'other_username':otherUsername}));
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
